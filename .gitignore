@@ -1,0 +1,14 @@
+# Локальные файлы
+.env
+.phpunit.result.cache
+*.log
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Docker
+src/vendor/
+src/node_modules/
