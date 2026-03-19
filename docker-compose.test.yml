@@ -1,0 +1,5 @@
+# docker-compose.test.yml
+services:
+  test:
+    image: alpine:latest
+    command: echo "Docker работает!"

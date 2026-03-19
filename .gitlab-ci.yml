@@ -1,0 +1,42 @@
+# .gitlab-ci.yml
+stages:
+  - test
+
+variables:
+  MYSQL_DATABASE: task_manager_test
+  MYSQL_ROOT_PASSWORD: root
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: task_manager_test
+  DB_USERNAME: root
+  DB_PASSWORD: root
+  REDIS_HOST: redis
+
+cache:
+  paths:
+    - src/vendor/
+
+before_script:
+  - apt-get update && apt-get install -y git unzip libzip-dev libpng-dev libonig-dev
+  - docker-php-ext-install pdo_mysql zip gd mbstring
+  - pecl install redis && docker-php-ext-enable redis || true
+  - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+  - cd src
+  - cp .env.example .env
+  - composer install --prefer-dist --no-progress
+  - php artisan key:generate
+  - php artisan migrate
+
+test:
+  stage: test
+  image: php:8.4-cli
+  services:
+    - mysql:8.0
+    - redis:7-alpine
+  script:
+    - vendor/bin/phpunit
+    - vendor/bin/phpstan analyse --level=5 app tests || true
+  artifacts:
+    paths:
+      - src/storage/logs/
+    when: on_failure
