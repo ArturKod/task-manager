@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskCompleted;
+use App\Events\TaskCreated;
+use App\Events\TaskStatusChanged;
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
@@ -45,6 +48,8 @@ class TaskController extends Controller
             'due_date' => $request->due_date,
         ]);
 
+        event(new TaskCreated($task));
+
         return new TaskResource($task->load('project'));
     }
 
@@ -58,8 +63,18 @@ class TaskController extends Controller
     public function update(TaskRequest $request, Task $task)
     {
         Gate::authorize('update', $task);
+
+        $oldStatus = $task->status;
         
         $task->update($request->validated());
+
+        if($oldStatus !== $task->status) {
+            event(new TaskStatusChanged($task, $oldStatus, $task->status));
+
+            if($task->status === 'done') {
+                event(new TaskCompleted($task));
+            }
+        }
 
         return new TaskResource($task->fresh()->load('project'));
     }

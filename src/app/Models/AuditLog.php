@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class AuditLog extends Model
+{
+    protected $fillable = [
+        'entity_type',
+        'entity_id',
+        'action',
+        'meta',
+        'occurred_at',
+    ];
+
+    protected $casts = [
+        'meta' => 'array', // автоматически преобразует JSON в массив
+        'occurred_at' => 'datetime',
+    ];
+}
